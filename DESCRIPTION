@@ -1,0 +1,24 @@
+Package: RMLM
+Title: Regression Models For Local Mutations
+Version: 0.0.1
+Authors@R: 
+    c(person("Christian","Lee", email = "Christian.Lee@oicr.on.ca", role = c("aut", "cre")),
+    person("Juri","Reimand", email = "juri.reimand@oicr.on.ca", , role = c("aut")))
+Description: Regression Models For Local Mutations (RM2) examines differential mutation rates and processes across classes of functional elements.
+Depends: R (>= 3.0.2)
+Imports:
+        Biostrings,
+        BSgenome,
+        BSgenome.Hsapiens.UCSC.hg19,
+        GenomeInfoDb,
+        GenomicRanges,
+        ggplot2,
+        MASS,
+        parallel,
+        reshape2,
+        S4Vectors
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
