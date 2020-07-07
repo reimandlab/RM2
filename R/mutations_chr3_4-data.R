@@ -1,16 +1,16 @@
-#' PCAWG Liver-HCC chr3 mutations
+#' PCAWG Eso-AdenoCA mutations
 #'
-#' Liver-HCC chr3 simple somatic mutations from PCAWG
+#' Esophageal adenocarcinoma chr3 and chr4 simple somatic mutations from PCAWG
 #'
-#' @name mutations_chr3
+#' @name mutations_chr3_4
 #'
 #' @docType data
 #'
-#' @usage data(mutations_chr3)
+#' @usage data(mutations_chr3_4)
 #'
 #' @format A data frame containing the following columns: chr, pos1, pos2, ref, alt, patient.
 #' \describe{
-#'     \item{chr}{chr3 only}
+#'     \item{chr}{chr3 and chr4 only}
 #'     \item{start}{the start position of the mutation in base 1 coordinates}
 #'     \item{end}{the end position of the mutation in base 1 coordinates}
 #'     \item{ref}{the reference allele as a string containing the bases A, T, C or G}
@@ -24,10 +24,10 @@
 #' @source \href{https://dcc.icgc.org/releases/PCAWG}
 #'
 #' @examples
-#' data(mutations_chr3)
+#' data(mutations_chr3_4)
 #' \donttest{
-#' data(ctcf_chr3)
-#' muts = cbind(mutations_chr3, get_mut_trinuc_strand(mutations_chr3))
+#' data(ctcf_chr3_4)
+#' muts = cbind(mutations_chr3_4, get_mut_trinuc_strand(mutations_chr3_4))
 #' window_size = 25
-#' RM2(muts, ctcf_chr3, window_size=window_size
+#' RM2(muts, ctcf_chr3_4, window_size=window_size
 #' }
