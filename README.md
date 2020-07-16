@@ -7,7 +7,7 @@ As input, RM2 requires:
 
 ## Installation
 #### devtools:
-Using the R package devtools, run devtools::install_github('https://github.com/reimandlab/RM2')
+Using the R package devtools, run: devtools::install_github('https://github.com/reimandlab/RM2')
 
 #### From source
 Clone the repository: https://github.com/reimandlab/RM2.git <br />
