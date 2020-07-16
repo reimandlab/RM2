@@ -5,7 +5,7 @@ Authors@R:
     c(person("Christian","Lee", email = "Christian.Lee@oicr.on.ca", role = c("aut", "cre")),
     person("Juri","Reimand", email = "juri.reimand@oicr.on.ca", role = c("aut")))
 Description: Regression Models For Localised Mutations (RM2) examines differential mutation rates and processes across classes of functional elements.
-Depends: R (>= 3.6.1)
+Depends: R (>= 3.4.4)
 Imports:
         Biostrings,
         BSgenome,
