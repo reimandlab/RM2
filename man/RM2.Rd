@@ -2,7 +2,7 @@
 % Please edit documentation in R/running_glm.R
 \name{RM2}
 \alias{RM2}
-\title{Evaluating differential mutation rates}
+\title{Regression models for localised mutations: Evaluating differential mutation rates across classes of sites}
 \usage{
 RM2(
   maf,

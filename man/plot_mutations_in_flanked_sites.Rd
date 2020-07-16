@@ -14,11 +14,11 @@ plot_mutations_in_flanked_sites(dfr, window_size = 100, y_range = NULL)
 \item{is_site}{boolean indicator of whether relative position is within the site}
 }}
 
-\item{window_size}{Half of the site width. Added to each side of site midpoint}
+\item{window_size}{Integer indicating the half-width of sites and flanking regions (added to both sides of midpoint)}
 }
 \value{
 ggplot object
 }
 \description{
-Visualizes mutations in sites and flanks
+Barplot of mutations along relative positions to site midpoints
 }

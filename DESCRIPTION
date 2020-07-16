@@ -1,11 +1,11 @@
 Package: RM2
-Title: Regression Models For Localized Mutations
+Title: Regression Models For Localised Mutations
 Version: 0.0.1
-Authors@R: 
+Authors@R:
     c(person("Christian","Lee", email = "Christian.Lee@oicr.on.ca", role = c("aut", "cre")),
-    person("Juri","Reimand", email = "juri.reimand@oicr.on.ca", , role = c("aut")))
-Description: Regression Models For Localized Mutations (RM2) examines differential mutation rates and processes across classes of functional elements.
-Depends: R (>= 3.0.2)
+    person("Juri","Reimand", email = "juri.reimand@oicr.on.ca", role = c("aut")))
+Description: Regression Models For Localised Mutations (RM2) examines differential mutation rates and processes across classes of functional elements.
+Depends: R (>= 3.4.4)
 Imports:
         Biostrings,
         BSgenome,

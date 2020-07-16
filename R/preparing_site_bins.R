@@ -32,7 +32,7 @@
 		legal_chr = paste0("chr", c(1:22, "M", "X", "Y"))
 		chr_max = GenomeInfoDb::seqlengths(BSgenome.Hsapiens.UCSC.hg19::Hsapiens)[legal_chr]
 
-		sites_1mb = do.call(rbind,lapply(1:length(sites_mid), .add_fixed_background, sites_mid, sites$chr, chr_max, global_mut_rate_window/2))
+		sites_1mb = do.call(rbind, parallel::mclapply(1:length(sites_mid), .add_fixed_background, sites_mid, sites$chr, chr_max, global_mut_rate_window/2, mc.cores=4))
 		gr_1mb = GenomicRanges::GRanges(sites_1mb$site_chr, IRanges::IRanges(sites_1mb$start, sites_1mb$end))
 
 		site_mb_mut_counts = GenomicRanges::countOverlaps(gr_1mb, gr_maf)

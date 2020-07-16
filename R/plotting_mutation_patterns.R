@@ -1,8 +1,9 @@
-#' Counts mutations at positions along flanks and sites
+#' Mutation counts along relative positions
 #'
+#' Prepares data frame of mutations at relative positions along flanks and sites
 #' @param mutations Data frame of mutations
 #' @param sites Data frame of sites
-#' @param window_size Half the of site width
+#' @param window_size Integer indicating the half-width of sites and flanking regions (added to both sides of midpoint)
 #'
 #' @return Data frame containing the relative position of each base (numeric), count (numeric) of mutations and site status (boolean)
 #' @export
@@ -44,13 +45,14 @@ get_mutations_in_flanked_sites = function(mutations, sites, window_size) {
 
 #' Visualizes mutations in sites and flanks
 #'
+#' Barplot of mutations along relative positions to site midpoints
 #' @param dfr Data frame of mutation counts at relative positions along stacked sites/flanks
 #'\describe{
 #'     \item{dist}{relative position of mutations}
 #'     \item{count}{number of mutations at relative position}
 #'     \item{is_site}{boolean indicator of whether relative position is within the site}
 #' }
-#' @param window_size Half of the site width. Added to each side of site midpoint
+#' @param window_size Integer indicating the half-width of sites and flanking regions (added to both sides of midpoint)
 #'
 #' @return ggplot object
 #' @export

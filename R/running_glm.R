@@ -1,5 +1,5 @@
-#' Evaluating differential mutation rates
-#'
+#' Regression models for localised mutations: Evaluating differential mutation rates across classes of sites
+#' 
 #' RM2() uses negative binomial regression to evaluate local mutation rates and processes between stacked sites of the same class to flanking control regions
 #' @param maf Data frame of mutations prepared by get_mut_trinuc_strand
 #' \describe{

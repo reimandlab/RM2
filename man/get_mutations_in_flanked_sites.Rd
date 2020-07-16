@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting_mutation_patterns.R
 \name{get_mutations_in_flanked_sites}
 \alias{get_mutations_in_flanked_sites}
-\title{Counts mutations at positions along flanks and sites}
+\title{Mutation counts along relative positions}
 \usage{
 get_mutations_in_flanked_sites(mutations, sites, window_size)
 }
@@ -11,11 +11,11 @@ get_mutations_in_flanked_sites(mutations, sites, window_size)
 
 \item{sites}{Data frame of sites}
 
-\item{window_size}{Half the of site width}
+\item{window_size}{Integer indicating the half-width of sites and flanking regions (added to both sides of midpoint)}
 }
 \value{
 Data frame containing the relative position of each base (numeric), count (numeric) of mutations and site status (boolean)
 }
 \description{
-Counts mutations at positions along flanks and sites
+Prepares data frame of mutations at relative positions along flanks and sites
 }

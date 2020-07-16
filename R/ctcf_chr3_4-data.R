@@ -26,6 +26,6 @@
 #' \donttest{
 #' data(mutations_chr3_4)
 #' muts = cbind(mutations_chr3_4, get_mut_trinuc_strand(mutations_chr3_4))
-#' window_size = 25
+#' window_size = 50
 #' RM2(muts, ctcf_chr3_4, window_size=window_size)
 #' }
