@@ -1,6 +1,6 @@
 Package: RM2
 Title: Regression Models For Localised Mutations
-Version: 1.0.0
+Version: 1.0.1
 Authors@R:
     c(person("Christian","Lee", email = "Christian.Lee@oicr.on.ca", role = c("aut", "cre")),
     person("Juri","Reimand", email = "juri.reimand@oicr.on.ca", role = c("aut")))

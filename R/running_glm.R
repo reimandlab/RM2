@@ -1,5 +1,5 @@
 #' Regression models for localised mutations: Evaluating differential mutation rates across classes of sites
-#' 
+#'
 #' RM2() uses negative binomial regression to evaluate local mutation rates and processes between stacked sites of the same class to flanking control regions
 #' @param maf Data frame of mutations prepared by get_mut_trinuc_strand
 #' \describe{
@@ -75,7 +75,7 @@ RM2 = function(maf, sites, mut_class_columns = NA, cofactor_column = NA,
 		} else {
 			split_maf1 = split(maf1, maf1[,cofactor_column])
 			dfr = do.call(rbind, lapply(names(split_maf1), function(cof)
-					data.frame(.maf_to_dfr(split_maf1[[cof]], prepared_sites), cof, stringsAsFactors=F)))
+					data.frame(.maf_to_dfr(split_maf1[[cof]], prepared_sites[[cof]]), cof, stringsAsFactors=F)))
 		}
 
 		.test_NB_model(dfr, maf1_title, n_min_mut = n_min_mut, test_cofactor = !is.na(cofactor_column))
