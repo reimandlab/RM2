@@ -10,7 +10,8 @@ RM2(
   mut_class_columns = NA,
   cofactor_column = NA,
   window_size = 100,
-  n_min_mut = 100
+  n_min_mut = 100,
+  n_bin = 10
 )
 }
 \arguments{

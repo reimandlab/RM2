@@ -40,19 +40,36 @@
 #' }
 #' @export
 RM2 = function(maf, sites, mut_class_columns = NA, cofactor_column = NA,
-			window_size = 100, n_min_mut = 100) {
+			window_size = 100, n_min_mut = 100, n_bin = 10) {
+
+	# sort sites and mutations for stability of results
+	maf = .sort_coords(maf)
+	sites = .sort_coords(sites)
+
+	# return this boilerplate if errors caught
+	empty_res = data.frame(mut_type = NA, pp = NA, this_coef = NA, obs_mut = NA,
+		exp_mut = NA, exp_mut_lo = NA, exp_mut_hi = NA, fc = NA,
+		pp_cofac = NA, this_coef_cofac = NA,
+		pp_regmut = NA, coef_regmut = NA, n_sites_tested = NA,
+		stringsAsFactors = FALSE)
 
 	prepared_sites = NULL
 	if (is.na(cofactor_column)) {
-		prepared_sites =
-			.prepare_bins_of_sites(sites, window_size, maf,
-						n_bin = 10, n_min_mut = n_min_mut)
+		prepared_sites = try(.prepare_bins_of_sites(sites, window_size, maf,
+														n_bin = 10, n_min_mut = n_min_mut), silent = TRUE)
+		if (any(class(prepared_sites) == "try-error")) {
+			return(empty_res)
+		}
+
 	} else {
 		split_maf = split(maf, maf[,cofactor_column])
 		prepared_sites = lapply(names(split_maf), function(cof)
-				.prepare_bins_of_sites(sites, window_size, split_maf[[cof]],
-						n_bin = 10, n_min_mut = n_min_mut))
-		names(prepared_sites) = names(split_maf)
+														try(.prepare_bins_of_sites(sites, window_size, split_maf[[cof]],
+																n_bin = 10, n_min_mut = n_min_mut)))
+		if (any(class(prepared_sites) == "try-error")) {
+			return(empty_res)
+		}
+		names(prepared_sites) = try(names(split_maf), silent = TRUE)
 	}
 
 	maf_list = do.call(c, lapply(mut_class_columns, function(mc) {
@@ -66,26 +83,39 @@ RM2 = function(maf, sites, mut_class_columns = NA, cofactor_column = NA,
 	}))
 
 	# maf1_title = "total_muts__total_muts"
-	res = do.call(rbind, lapply(names(maf_list), function(maf1_title) {
-		maf1 = maf_list[[maf1_title]]
+	res = do.call(rbind, lapply(names(maf_list), function(mc) {
+			maf1 = maf_list[[mc]]
 
 		dfr = NULL
 		if (is.na(cofactor_column)) {
-			dfr = .maf_to_dfr(maf1, prepared_sites)
+			dfr = try(.maf_to_dfr(maf1, prepared_sites), silent = TRUE)
 		} else {
 			split_maf1 = split(maf1, maf1[,cofactor_column])
-			dfr = do.call(rbind, lapply(names(split_maf1), function(cof)
-					data.frame(.maf_to_dfr(split_maf1[[cof]], prepared_sites[[cof]]), cof, stringsAsFactors=F)))
+			dfr = try(do.call(rbind, lapply(names(split_maf1), function(cof) {
+					split_dfr = .maf_to_dfr(split_maf1[[cof]], prepared_sites[[cof]])
+					split_dfr = data.frame(split_dfr, cof, stringsAsFactors = FALSE)
+					split_dfr
+			})), silent = TRUE)
 		}
 
-		.test_NB_model(dfr, maf1_title, n_min_mut = n_min_mut, test_cofactor = !is.na(cofactor_column))
-	}))
+		if (any(class(dfr) == "try-error")) {
+			dfr = NULL
+		}
 
-	if (!is.null(res[[1]])) {
-		res$n_sites_tested = nrow(sites)
-	}
 
-	res
+		this_res = try(.test_NB_model(dfr, mc, n_min_mut = n_min_mut,
+						test_cofactor = !is.na(cofactor_column)), silent = TRUE)
+
+				if (any(class(this_res) == "try-error")) {
+					empty_res$mut_type = mc
+					this_res = empty_res
+				}
+				this_res$n_sites_tested = nrow(sites)
+				this_res
+			}))
+
+			rownames(res) = NULL
+			res
 }
 
 
@@ -113,25 +143,24 @@ RM2 = function(maf, sites, mut_class_columns = NA, cofactor_column = NA,
 #' }
 .test_NB_model = function(dfr, mut_type, n_min_mut = 100, test_cofactor = F) {
 
-	empty_res = data.frame(mut_type, pp=NA, this_coef=NA, obs_mut=NA,
-		exp_mut=NA, exp_mut_lo=NA, exp_mut_hi=NA, fc=NA, pp_cofac=NA, this_coef_cofac=NA,
-		stringsAsFactors=F)
-
 	if (test_cofactor & length(unique(dfr$cof)) != 2) {
-		print(paste0(mut_type,  ": Incorrect number of cofactor values (",
-				length(unique(dfr$cof)), "), skipping."))
-		return(empty_res)
+	stop(paste0(mut_type,  ": Incorrect number of cofactor values (",
+			length(unique(dfr$cof)), "), skipping."))
 	}
 
 	if (sum(dfr$muts_count) < n_min_mut) {
-		print(paste0(mut_type,  ": Too few mutations in sites+flanks (", sum(dfr$muts_count), "), skipping."))
-		return(empty_res)
+	stop(paste0(mut_type,  ": Too few mutations in sites+flanks (",
+			sum(dfr$muts_count), "), skipping."))
 	}
 
 	silent_quadnucs = names(which(c(by(dfr$muts_count, dfr$quadnuc, sum))==0))
 	dfr = dfr[!dfr$quadnuc %in% silent_quadnucs, ]
 
-	this_formula = "muts_count ~ log1p(mut_rate) + is_site + offset(log(posi_count))"
+	# mutation rate and count of positions will be log'd for model stability
+	dfr$log_mut_rate = log1p(dfr$mut_rate)
+	dfr$log_posi_count = log(dfr$posi_count)
+
+	this_formula = "muts_count ~ log_mut_rate + is_site + offset(log_posi_count)"
 
 	# adjust formula if only one quad-nuc context of mutations is available; most commonly indel models
 	if (length(unique(dfr$quadnuc)) > 1)	{
@@ -146,15 +175,13 @@ RM2 = function(maf, sites, mut_class_columns = NA, cofactor_column = NA,
 	h1 = try(MASS::glm.nb(stats::as.formula(this_formula), data=dfr), silent=T)
 
 	if (any(class(h1)=="try-error")) {
-		print(paste0(mut_type, ": glm.nb failed at h1, n_mut=", sum(dfr$muts_count), "."))
-		return(empty_res)
+			stop(paste0(mut_type, ": glm.nb failed at h1, n_mut=", sum(dfr$muts_count), "."))
 	}
 
 	h0 = try(stats::update(h1, . ~ . - is_site, data=dfr), silent=T)
 
 	if (any(class(h0)=="try-error")) {
-		print(paste0(mut_type, ": glm.nb failed at h0, n_mut=", sum(dfr$muts_count), "."))
-		return(empty_res)
+		stop(paste0(mut_type, ": glm.nb failed at h0, n_mut=", sum(dfr$muts_count), "."))
 	}
 
 	# "manual" calculation is more precise, thanks to lower.tail.
@@ -172,6 +199,14 @@ RM2 = function(maf, sites, mut_class_columns = NA, cofactor_column = NA,
 	exp_mut_hi = h0_mut[['hi']]
 	fc = h1_mut[['mid']] / h0_mut[['mid']]
 
+	# significance of the regional mutation rate parameter
+	h1_regmut = try(stats::update(h1, . ~ . - log_mut_rate, data = dfr), silent = TRUE)
+	if (any(class(h1_regmut) == "try-error")) {
+		stop(paste0(mut_type, ": glm.nb failed at h0_regmut, n_mut=", sum(dfr$muts_count), "."))
+	}
+	pp_regmut = stats::pchisq(-(h1_regmut$twologlik - h1$twologlik), 1, lower.tail = FALSE)
+	coef_regmut = stats::coef(h1)[['log_mut_rate']]
+
 	pp_cofac = this_coef_cofac = NA
 	if (test_cofactor) {
 
@@ -184,7 +219,8 @@ RM2 = function(maf, sites, mut_class_columns = NA, cofactor_column = NA,
 	}
 
 	data.frame(mut_type, pp, this_coef, obs_mut=real_obs_mut,
-		exp_mut, exp_mut_lo, exp_mut_hi, fc, pp_cofac, this_coef_cofac, stringsAsFactors=F)
+		exp_mut, exp_mut_lo, exp_mut_hi, fc, pp_cofac, this_coef_cofac,
+		pp_regmut, coef_regmut, stringsAsFactors=F)
 }
 
 
@@ -201,4 +237,24 @@ RM2 = function(maf, sites, mut_class_columns = NA, cofactor_column = NA,
 	hi = stats::quantile(hyp_predict_probs, 0.975, na.rm=T)[[1]]
 
 	c(mid=mid, lo=lo, hi=hi)
+}
+
+
+
+
+#' Sort by increasing chromosomes and positions
+#'
+#' @param dfr Data Frame containing columns "chr", "start" and "end"
+#'
+#' @return Data Frame ordered
+.sort_coords = function(dfr) {
+
+	chrs = gsub("chr", "", dfr$chr)
+	chrs[chrs == "X"] = 23
+	chrs[chrs == "Y"] = 24
+	chrs[chrs == "M"] = 25
+	chrs = as.numeric(chrs)
+
+	new_order = order(chrs, (dfr$start + dfr$end) / 2)
+	dfr = dfr[new_order,, drop = FALSE ]
 }
