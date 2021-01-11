@@ -23,26 +23,40 @@
 		return(NULL)
 	}
 
+	# remove sites that together with windows exceed chromosomal coordinates
+	chr_ends = GenomeInfoDb::seqlengths(GenomeInfoDb::seqinfo(BSgenome.Hsapiens.UCSC.hg19::Hsapiens))[as.character(GenomeInfoDb::seqnames(gr_sites))]
+	chr_ends_index = which(end(gr_sites) >= chr_ends)
+	chr_starts_index = which(start(gr_sites) <= 1)
+	keep_site_index = setdiff(1:nrow(sites), c(chr_ends_index, chr_starts_index))
+	sites = sites[keep_site_index,, drop = FALSE ]
+	sites_mid = sites_mid[keep_site_index]
+
 	# prepare all sites together
 	if (is.na(n_bin)) {
 		sites_prepared = list("mutrate__1"=.prepare_sites(sites, window_size))
 	} else {
 
-		# prepare sites for every bin based on average mutation rate and set fixed background if boundaries exceeded
-		legal_chr = paste0("chr", c(1:22, "M", "X", "Y"))
-		chr_max = GenomeInfoDb::seqlengths(BSgenome.Hsapiens.UCSC.hg19::Hsapiens)[legal_chr]
+		# prepare sites for every bin based on average mutation rate
+		dfr_1mb = data.frame(chr = sites$chr,
+				start = sites_mid - global_mut_rate_window / 2,
+				end = sites_mid + global_mut_rate_window / 2 - 1,
+				stringsAsFactors = FALSE)
 
-		sites_1mb = do.call(rbind, parallel::mclapply(1:length(sites_mid), .add_fixed_background, sites_mid, sites$chr, chr_max, global_mut_rate_window/2, mc.cores=4))
-		gr_1mb = GenomicRanges::GRanges(sites_1mb$site_chr, IRanges::IRanges(sites_1mb$start, sites_1mb$end))
+		# make sure windows don't exceed chr boundaries
+		chr_ends = GenomeInfoDb::seqlengths(GenomeInfoDb::seqinfo(BSgenome.Hsapiens.UCSC.hg19::Hsapiens))[dfr_1mb$chr]
+		chr_ends_index = which(dfr_1mb$end >= chr_ends)
+		dfr_1mb$end[chr_ends_index] = chr_ends[chr_ends_index] - 1
+		dfr_1mb$start[dfr_1mb$start < 1] = 1
 
+		# count mutations per bin
+		gr_1mb = GenomicRanges::GRanges(dfr_1mb$chr, IRanges::IRanges(dfr_1mb$start, dfr_1mb$end))
 		site_mb_mut_counts = GenomicRanges::countOverlaps(gr_1mb, gr_maf)
 
 		# split sites into equal bins based on 1MB mut rates
 		# return NULL; to be handled in higher-level functions
 		bin_index = try(ggplot2::cut_number(site_mb_mut_counts, n_bin), silent = T)
-		if (any(class(bin_index)=="try-error")) {
-			print(paste0("Insufficient data values to produce ", n_bin, " bins."))
-			return(NULL)
+		if (any(class(bin_index) == "try-error")) {
+					stop(paste0("Too few mutations to produce ", n_bin, " bins."))
 		}
 
 		site_bins = split(sites, bin_index)
@@ -55,33 +69,6 @@
 	return(sites_prepared)
 }
 
-
-#' Ensures background megabase mutation rates use legal coordinates
-#'
-#' @param site_index Numeric index of site
-#' @param sites_mid Numeric vector of site midpoints
-#' @param sites_chr Character vector of site chromosomes
-#' @param chr_max Numeric vector of max coordinate per chromosome
-#' @param background_width Integer indicating background size (1e6)
-#'
-#' @return Data frame of legal site chromosomes and coordinates
-.add_fixed_background = function(site_index, sites_mid, sites_chr, chr_max, background_width) {
-	site_mid = sites_mid[site_index]
-	site_chr = as.character(sites_chr[site_index])
-	max_coord = chr_max[[site_chr]]
-
-	if (site_mid > background_width & site_mid < max_coord - background_width) {
-		start = site_mid - background_width
-		end = site_mid + background_width
-	} else if (site_mid < background_width) {
-		start = 1
-		end = 2 * background_width + 1
-	} else if (site_mid > max_coord - background_width) {
-		end = max_coord
-		start = max_coord - 2 * background_width
-	}
-	return(data.frame(site_chr, start, end, stringsAsFactors = F))
-}
 
 
 
