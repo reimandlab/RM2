@@ -27,9 +27,19 @@ muts = cbind(mutations_chr3_4, get_mut_trinuc_strand(mutations_chr3_4))
 
 #### Run regression
 window_size = 50 <br />
-results = RM2(muts, ctcf_chr3_4, window_size=window_size) <br />
+results = RM2(muts, ctcf_chr3_4, window_size = window_size) <br />
 results
 
 #### Visualize results
 dfr = get_mutations_in_flanked_sites(muts, ctcf_chr3_4, window_size) <br />
 plot_mutations_in_flanked_sites(dfr, window_size)
+
+#### Run regression with additional mutation subclasses
+mut_class_columns = c("mut_strand", "ref_alt") <br />
+results = RM2(muts, ctcf_chr3_4, window_size = window_size, mut_class_columns = mut_class_columns) <br />
+results
+
+#### Run regression with additional mutation co-factor
+muts$cofactor_col = sample(c(0,1), nrow(muts), replace=T) <br />
+results = RM2(muts, sites = ctcf_chr3_4, window_size = window_size, cofactor_column = "cofactor_col") <br />
+results
