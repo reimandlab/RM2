@@ -25,8 +25,8 @@
 
 	# remove sites that together with windows exceed chromosomal coordinates
 	chr_ends = GenomeInfoDb::seqlengths(GenomeInfoDb::seqinfo(BSgenome.Hsapiens.UCSC.hg19::Hsapiens))[as.character(GenomeInfoDb::seqnames(gr_sites))]
-	chr_ends_index = which(end(gr_sites) >= chr_ends)
-	chr_starts_index = which(start(gr_sites) <= 1)
+	chr_ends_index = which(GenomicRanges::end(gr_sites) >= chr_ends)
+	chr_starts_index = which(GenomicRanges::start(gr_sites) <= 1)
 	keep_site_index = setdiff(1:nrow(sites), c(chr_ends_index, chr_starts_index))
 	sites = sites[keep_site_index,, drop = FALSE ]
 	sites_mid = sites_mid[keep_site_index]

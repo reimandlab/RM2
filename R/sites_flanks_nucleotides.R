@@ -67,8 +67,7 @@
 #' @param x Numeric vector of p-values
 #'
 #' @return Position of median value
-#' @export
-which_median = function(x) {
+.which_median = function(x) {
 	mid_pos = ceiling(length(x)/2)
 	which(x == sort(x)[mid_pos])[1]
 }

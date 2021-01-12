@@ -120,6 +120,77 @@ RM2 = function(maf, sites, mut_class_columns = NA, cofactor_column = NA,
 
 
 
+#' Evaluating differential mutation rates across classes of sites with downsampling
+#'
+#' RM2_downsample() is a wrapper that first performs downsampling then calls RM2. The median index is selected by p-value for total mutations (mut_class_columns=NA) and the corresponding values are returned.
+#' @param maf Data frame of mutations prepared by get_mut_trinuc_strand
+#' \describe{
+#'     \item{chr}{autosomal chromosomes as chr1 to chr22 and sex chromosomes as chrX and chrY}
+#'     \item{start}{the start position of the mutation in base 1 coordinates}
+#'     \item{end}{the end position of the mutation in base 1 coordinates}
+#'     \item{ref}{the reference allele as a string containing the bases A, T, C or G}
+#'     \item{alt}{the alternate allele as a string containing the bases A, T, C or G}
+#'     \item{mut_trinuc}{trinucleotide context - where middle is C or T - with alternate allele}
+#'     \item{mut_strand}{character indicating Watson (w) or Crick (c)}
+#'     \item{ref_alt}{character indicating single-base substitution}
+#' }
+#' @param sites Data frame
+#' \describe{
+#'     \item{chr}{autosomal chromosomes as chr1 to chr22 and sex chromosomes as chrX and chrY}
+#'     \item{start}{the start position of the mutation in base 0 coordinates}
+#'     \item{end}{the end position of the mutation in base 0 coordinates}
+#' }
+#' @param mut_class_column Character corresponding to column of mutation classes for grouped analysis
+#' @param cofactor_column Character corresponding to column of cofactors
+#' @param window_size Integer indicating the half-width of sites and flanking regions (added to left and right for full width). Default 100bp
+#' @param n_min_mut Integer indicating the minimum number of mutations required to perform analysis
+#' @param n_sites_sampled Integer indicating the number of sites to sample
+#' @param n_iterations Integer indicating how many times to repeat the sampling procedure
+#'
+#' @return Data frame containing the regression estimates and likelihood ratio test output with the following columns: mut_type,
+#' pp, this_coef, obs_mut, exp_mut, exp_mut_hi, exp_mut_lo, fc, n_sites_tested
+#' \describe{
+#'     \item{mut_type}{A string identifying the mutation class}
+#'     \item{pp}{The p-value from the likelihood ratio test}
+#'     \item{this_coef}{The coefficient from is_site}
+#'     \item{obs_mut}{The total number of observed mutations of that class}
+#'     \item{exp_mut}{The expected number of mutations determined by the model}
+#'     \item{exp_mut_lo}{Lower bound of 95% confidence interval}
+#'     \item{exp_mut_hi}{Upper bound of 95% confidence interval}
+#'     \item{fc}{Observed mutations divided by expected mutations}
+#'     \item{pp_cofac}{The p-value from the likelihood ratio test of site:cofactor interaction}
+#'     \item{this_coef_cofac}{The coefficient from the site:cofactor interaction term}
+#'     \item{n_sites_tested}{The number of sites that were tested - all sites if no downsampling}
+#' }
+#' @export
+RM2_downsample = function(maf, sites, mut_class_columns = NA, cofactor_column = NA, 
+                              window_size = 100, n_min_mut = 100, n_bin = 10, 
+                              n_sites_sampled, n_iterations = 100) {
+  
+  if (nrow(sites) < n_sites_sampled) {
+    res1 = RM2(maf, sites, mut_class_columns = mut_class_columns, 
+                   cofactor_column = cofactor_column, window_size = window_size, 
+                   n_min_mut = n_min_mut, n_bin = n_bin)
+    return(res1)
+  }
+  
+  sampled_res = lapply(1:n_iterations, function(i) {
+    cat(".")
+    sites1 = sites[sample(1:nrow(sites), n_sites_sampled),]
+    res1 = RM2(maf, sites1, mut_class_columns = mut_class_columns, 
+                   cofactor_column = cofactor_column, window_size = window_size, 
+                   n_min_mut = n_min_mut, n_bin = n_bin)
+  })
+  
+  # select representative by median p-value
+  select_index = .which_median(sapply(sampled_res, function(x) 
+    x[x$mut_type == "total_muts__total_muts","pp"]))
+  
+  sampled_res[[select_index]]
+}
+
+
+
 #' Runs negative binomial regression and likelihood ratio test
 #'
 #' @param dfr Data frame generated from maf_to_dfr that contains mutation and trinucleotide counts for each quadnucleotide context + indel
