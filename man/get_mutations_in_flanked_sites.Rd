@@ -4,17 +4,20 @@
 \alias{get_mutations_in_flanked_sites}
 \title{Mutation counts along relative positions}
 \usage{
-get_mutations_in_flanked_sites(mutations, sites, window_size)
+get_mutations_in_flanked_sites(mutations, this_sites, window_size, n_patients)
 }
 \arguments{
 \item{mutations}{Data frame of mutations}
 
-\item{sites}{Data frame of sites}
+\item{this_sites}{Data frame of sites}
 
 \item{window_size}{Integer indicating the half-width of sites and flanking regions (added to both sides of midpoint)}
+
+\item{n_patients}{Integer indicating number of patients}
 }
 \value{
-Data frame containing the relative position of each base (numeric), count (numeric) of mutations and site status (boolean)
+Data frame containing the relative position of each base (numeric), mut_count (numeric) of mutations,
+mut_freq (numeric) calulated as mut_count / n_patients / total bp * 1e6, and site status (boolean)
 }
 \description{
 Prepares data frame of mutations at relative positions along flanks and sites

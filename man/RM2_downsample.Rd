@@ -17,7 +17,7 @@ RM2_downsample(
 )
 }
 \arguments{
-\item{maf}{Data frame of mutations prepared by get_mut_trinuc_strand
+\item{maf}{Data frame of mutations
 \describe{
 \item{chr}{autosomal chromosomes as chr1 to chr22 and sex chromosomes as chrX and chrY}
 \item{start}{the start position of the mutation in base 1 coordinates}
@@ -38,13 +38,15 @@ RM2_downsample(
 
 \item{cofactor_column}{Character corresponding to column of cofactors}
 
-\item{window_size}{Integer indicating the half-width of sites and flanking regions (added to left and right for full width). Default 100bp}
+\item{window_size}{Integer indicating the half-width of sites and flanking regions (added to left and right for full width) (default 100)}
 
-\item{n_min_mut}{Integer indicating the minimum number of mutations required to perform analysis}
+\item{n_min_mut}{Integer indicating the minimum number of mutations required to perform analysis (default 100)}
+
+\item{n_bin}{Integer indicating the number of megabase bins to use (default 10)}
 
 \item{n_sites_sampled}{Integer indicating the number of sites to sample}
 
-\item{n_iterations}{Integer indicating how many times to repeat the sampling procedure}
+\item{n_iterations}{Integer indicating how many times to repeat the sampling procedure (default 100)}
 
 \item{mut_class_column}{Character corresponding to column of mutation classes for grouped analysis}
 }

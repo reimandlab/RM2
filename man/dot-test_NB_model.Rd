@@ -11,7 +11,7 @@
 
 \item{mut_type}{Character corresponding to total mutations or name of subclass}
 
-\item{n_min_mut}{Integer (100) representing the minimum number of mutations required to run test}
+\item{n_min_mut}{Integer (default 100) representing the minimum number of mutations required to run test}
 
 \item{test_cofactor}{Boolean indicating whether to analyze cofactor}
 }

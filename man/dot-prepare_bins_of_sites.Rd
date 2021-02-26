@@ -20,14 +20,14 @@
 
 \item{maf}{Data frame of mutations prepared by get_mut_trinuc_strand}
 
-\item{n_bin}{Integer (10) indicating the number of bins to which to split sites}
+\item{n_bin}{Integer (default 10) indicating the number of bins to which to split sites}
 
-\item{n_min_mut}{Integer (100) indicating minimum number of mutations to proceed with analysis}
+\item{n_min_mut}{Integer (default 100) indicating minimum number of mutations to proceed with analysis}
 
-\item{global_mut_rate_window}{Integer (1e6) indicating the window for mutation rate binning}
+\item{global_mut_rate_window}{Integer (default 1e6) indicating the window for mutation rate binning}
 }
 \value{
-List of length n_bin each containing 3 GRanges of coordinates (site and flanks) and 3 dataframes of trinucleotide counts and mutation contexts
+List of length n_bin each containing two GRanges of coordinates (site and flanks) and two dataframes of trinucleotide counts and mutation contexts
 }
 \description{
 Generates bins and calls prepare_sites such that site coordinates, number of trinucleotide contexts and indels, and all possible quadnucleotide contexts are returned for each mutation rate bin and site + flank

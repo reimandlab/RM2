@@ -3,43 +3,41 @@
 #' @param sites Data frame of sites
 #' @param window_size Integer indicating the half-width of sites and flanking regions
 #' @param maf Data frame of mutations prepared by get_mut_trinuc_strand
-#' @param n_bin Integer (10) indicating the number of bins to which to split sites
-#' @param n_min_mut Integer (100) indicating minimum number of mutations to proceed with analysis
-#' @param global_mut_rate_window Integer (1e6) indicating the window for mutation rate binning
+#' @param n_bin Integer (default 10) indicating the number of bins to which to split sites
+#' @param n_min_mut Integer (default 100) indicating minimum number of mutations to proceed with analysis
+#' @param global_mut_rate_window Integer (default 1e6) indicating the window for mutation rate binning
 #'
-#' @return List of length n_bin each containing 3 GRanges of coordinates (site and flanks) and 3 dataframes of trinucleotide counts and mutation contexts
-
+#' @return List of length n_bin each containing two GRanges of coordinates (site and flanks) and two dataframes of trinucleotide counts and mutation contexts
 .prepare_bins_of_sites = function(sites, window_size, maf, n_bin=NA, n_min_mut = 100, global_mut_rate_window = 1e6) {
 
-	# first count mutations in sites + flanks in total. Skip analysis if too low
+	# first count mutations in sites + flanks in total
+	# if too low, then we will skip this analysis
+	# do this early to avoid computing small problems
+	window_size_flanked = 3 * window_size
+	sites_mid = floor((sites$start + sites$end) / 2)
+	gr_sites = GenomicRanges::GRanges(sites$chr, 
+	                                  IRanges::IRanges(sites_mid - window_size_flanked, 
+	                                  sites_mid + window_size_flanked - 1))
+	
+	# unique all sites to avoid counting muts multiple times
+	gr_sites = GenomicRanges::reduce(gr_sites)
 	gr_maf = GenomicRanges::GRanges(maf$chr, IRanges::IRanges(maf$start, maf$end))
-	sites_mid = floor((sites$start+sites$end)/2)
-	gr_sites = GenomicRanges::GRanges(sites$chr,
-		IRanges::IRanges(sites_mid - 3 * window_size - 1, sites_mid + 3 * window_size))
 	total_muts = sum(GenomicRanges::countOverlaps(gr_sites, gr_maf))
-
+	
 	if (total_muts < n_min_mut) {
-		print(paste0("Too few mutations in sites+flanks (", total_muts, "), skipping."))
-		return(NULL)
+	  stop("Too few mutations in sites+flanks.", call. = FALSE)
 	}
 
-	# remove sites that together with windows exceed chromosomal coordinates
-	chr_ends = GenomeInfoDb::seqlengths(GenomeInfoDb::seqinfo(BSgenome.Hsapiens.UCSC.hg19::Hsapiens))[as.character(GenomeInfoDb::seqnames(gr_sites))]
-	chr_ends_index = which(GenomicRanges::end(gr_sites) >= chr_ends)
-	chr_starts_index = which(GenomicRanges::start(gr_sites) <= 1)
-	keep_site_index = setdiff(1:nrow(sites), c(chr_ends_index, chr_starts_index))
-	sites = sites[keep_site_index,, drop = FALSE ]
-	sites_mid = sites_mid[keep_site_index]
-
+	
 	# prepare all sites together
 	if (is.na(n_bin)) {
-		sites_prepared = list("mutrate__1"=.prepare_sites(sites, window_size))
+		sites_prepared = list("mutrate__1"= .prepare_sites2(sites, window_size))
 	} else {
 
 		# prepare sites for every bin based on average mutation rate
 		dfr_1mb = data.frame(chr = sites$chr,
 				start = sites_mid - global_mut_rate_window / 2,
-				end = sites_mid + global_mut_rate_window / 2 - 1,
+				end = sites_mid + global_mut_rate_window / 2,
 				stringsAsFactors = FALSE)
 
 		# make sure windows don't exceed chr boundaries
@@ -51,19 +49,25 @@
 		# count mutations per bin
 		gr_1mb = GenomicRanges::GRanges(dfr_1mb$chr, IRanges::IRanges(dfr_1mb$start, dfr_1mb$end))
 		site_mb_mut_counts = GenomicRanges::countOverlaps(gr_1mb, gr_maf)
+		
+		# some bins on chromosome boundaries and thus shorter; correct them
+		bin_length_coefficient = 
+		  ( dfr_1mb$end - dfr_1mb$start ) / global_mut_rate_window
+		site_mb_mut_counts_corrected = 
+		  site_mb_mut_counts / bin_length_coefficient
 
 		# split sites into equal bins based on 1MB mut rates
 		# return NULL; to be handled in higher-level functions
 		bin_index = try(ggplot2::cut_number(site_mb_mut_counts, n_bin), silent = T)
 		if (any(class(bin_index) == "try-error")) {
-					stop(paste0("Too few mutations to produce ", n_bin, " bins."))
+		  stop("Too few mutations to produce bins.", call. = FALSE)
 		}
 
 		site_bins = split(sites, bin_index)
 		bin_mean_mut_rate = c(by(site_mb_mut_counts, bin_index, mean, na.rm=T))
 
 		# prepare sites for every bin
-		sites_prepared = lapply(site_bins, .prepare_sites, window_size)
+		sites_prepared = lapply(site_bins, .prepare_sites2, window_size)
 		names(sites_prepared) = paste("mutrate__", bin_mean_mut_rate, sep="")
 	}
 	return(sites_prepared)
@@ -72,30 +76,74 @@
 
 
 
-#' For each mutation rate bin and site + flanks, calculates site coordinates, number of trinucleotide contexts and indels, and all possible mutation contexts
+#' Get merged and trimmed sites and flanking regions and trinucleotide counts
 #'
-#' @param sites Data frame of sites
+#' @param this_sites Data frame of sites
 #' @param window_size Integer indicating the half-width of sites and flanking regions
 #'
-#' @return List containing 3 GRanges of coordinates (site and flanks) and 3 dataframes of trinucleotide counts and mutation contexts
-.prepare_sites = function(sites, window_size) {
+#' @return List containing two GRanges of sites and flanks, and two dataframes for their trinucleotide counts and mutation contexts
+.prepare_sites2 = function(this_sites, window_size) {
+  
+  window_size_flanked = 3 * window_size
+  
+  sites_mid = floor((this_sites$start + this_sites$end)/2)
+  gr_sites = GenomicRanges::GRanges(this_sites$chr, 
+                             IRanges::IRanges(sites_mid - window_size, 
+                             sites_mid + window_size - 1))
+  
+  gr_sites_with_flank = GenomicRanges::GRanges(this_sites$chr, 
+                                        IRanges::IRanges(sites_mid - window_size_flanked, 
+                                        sites_mid + window_size_flanked - 1))
+  
+  # merge consecutive regions
+  gr_sites = GenomicRanges::reduce(gr_sites)
+  gr_sites_with_flank = GenomicRanges::reduce(gr_sites_with_flank)
+  
+  # remove sites from sites+flank to get only flank
+  gr_flank = GenomicRanges::setdiff(gr_sites_with_flank, gr_sites)
+  
+  # trim sites and flanks that exceed chromosomal boundaries
+  gr_sites = .trim_chrom_boundaries(gr_sites)
+  gr_flank = .trim_chrom_boundaries(gr_flank)
+  
+  # count trinucleotides in both sites and flanks
+  trinuc_sites = .get_trinucs2(gr_sites)
+  trinuc_flank = .get_trinucs2(gr_flank)
+  
+  result = list(gr_sites, gr_flank, trinuc_sites, trinuc_flank)
+  names(result) = c("gr_sites", "gr_flank", "trinuc_sites", "trinuc_flank")
+  result
+}
 
-	sites_mid = floor((sites$start+sites$end)/2)
-	gr_sites = GenomicRanges::GRanges(sites$chr, IRanges::IRanges(sites_mid - window_size - 1, sites_mid + window_size))
 
-	site_ids = paste(GenomicRanges::seqnames(gr_sites), GenomicRanges::start(gr_sites), GenomicRanges::end(gr_sites), sep="_")
 
-	# create unique site IDs
-	dupl_site_index = which(duplicated(site_ids))
-	site_ids[dupl_site_index] = paste(site_ids[dupl_site_index], 1:length(dupl_site_index), sep="_")
-
-	# compare each site with immediate background of same length
-	gr_sites_upstream = .get_up_flank(gr_sites)
-	gr_sites_downstream = .get_down_flank(gr_sites)
-
-	trinuc_sites = .get_nucs(gr_sites, site_ids)
-	trinuc_upstream = .get_nucs(gr_sites_upstream, site_ids)
-	trinuc_downstream = .get_nucs(gr_sites_downstream, site_ids)
-
-	list(gr_sites, gr_sites_upstream, gr_sites_downstream, trinuc_sites, trinuc_upstream, trinuc_downstream)
+#' Clean sites near chromosome boundaries
+#'
+#' @param gr_sites_this GRanges object of sites
+#'
+#' @return GRanges object containing cleaned and trimmed sites
+.trim_chrom_boundaries = function(gr_sites_this) {
+  
+  chr_ends = GenomeInfoDb::seqlengths(GenomeInfoDb::seqinfo(BSgenome.Hsapiens.UCSC.hg19::Hsapiens))[as.character(GenomeInfoDb::seqnames(gr_sites_this))]
+  
+  # these regions only both coordinates beyond boundaries, remove
+  which_both_end_exceeds = 
+    which(GenomicRanges::end(gr_sites_this) >= chr_ends & GenomicRanges::start(gr_sites_this) >= chr_ends)
+  
+  # these regions only both coordinates beyond boundaries, remove
+  which_both_start_exceeds = 
+    which(GenomicRanges::start(gr_sites_this) < 2 & GenomicRanges::end(gr_sites_this) < 2)
+  sites_keep = setdiff(1:length(gr_sites_this), 
+                       c(which_both_end_exceeds, which_both_start_exceeds))
+  gr_sites_this = gr_sites_this[sites_keep]
+  chr_ends = chr_ends[sites_keep]
+  
+  # these regions only have one coordinate beyond boundaries, trim
+  which_end_exceeds = which(GenomicRanges::end(gr_sites_this) >= chr_ends)
+  which_start_exceeds = which(GenomicRanges::start(gr_sites_this) < 2)
+  
+  # constrain by more than one because trinucleotide computing will grab one extra nt
+  GenomicRanges::end(gr_sites_this)[which_end_exceeds] = chr_ends[which_end_exceeds] - 1
+  GenomicRanges::start(gr_sites_this)[which_start_exceeds] = 2
+  gr_sites_this
 }

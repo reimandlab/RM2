@@ -1,9 +1,12 @@
-# Regression Models for Localised Mutations
-Regression Models for Localised Mutations (RM2) is a tool for evaluating differential mutation rates and processes across classes of functional sites. RM2 uses negative binomial regression models to assess whether sites of interest show an enrichment or depletion of total mutations compared to flanking control regions of the same length. Further, RM2 was designed to test whether subclasses of mutations, like those of specific signatures, strandedness, transcription direction, and other features show differential patterns. This allows for quick and systematic characterization of mutational processes and can be easily extended to site-based studies like pathway analysis.   
+# Regression Models for Local Mutations
+Regression Models for Local Mutations (RM2) is a tool for evaluating differential mutation rates and processes across classes of functional sites. RM2 uses negative binomial regression to assess whether sites of interest show an enrichment or depletion of mutations compared to flanking control regions of the same length. Further, RM2 was designed to test whether subclasses of mutations, like those of specific signatures, strandedness, transcription direction, and other features, show differential patterns. This allows for quick and systematic characterization of mutational processes and can be easily extended to site-based studies like pathway analysis.   
 
 As input, RM2 requires:
 1. Mutation file with optional annotation columns
 2. Set of genomic regions containing the chr, start and end position of the sites
+
+#### Preprint
+[Functional and genetic determinants of mutation rate variability in regulatory elements of cancer genomes](https://www.biorxiv.org/content/10.1101/2020.07.29.226373v2)
 
 ## Installation
 #### devtools:
@@ -26,20 +29,23 @@ data("mutations_chr3_4")
 muts = cbind(mutations_chr3_4, get_mut_trinuc_strand(mutations_chr3_4))
 
 #### Run regression
-window_size = 50 <br />
+window_size = 25 <br />
 results = RM2(muts, ctcf_chr3_4, window_size = window_size) <br />
-results
 
 #### Visualize results
-dfr = get_mutations_in_flanked_sites(muts, ctcf_chr3_4, window_size) <br />
+n_patient = 150
+dfr = get_mutations_in_flanked_sites(muts, ctcf_chr3_4, window_size, n_patient) <br />
 plot_mutations_in_flanked_sites(dfr, window_size)
 
 #### Run regression with additional mutation subclasses
 mut_class_columns = c("mut_strand", "ref_alt") <br />
 results = RM2(muts, ctcf_chr3_4, window_size = window_size, mut_class_columns = mut_class_columns) <br />
-results
 
 #### Run regression with additional mutation co-factor
 muts$cofactor_col = sample(c(0,1), nrow(muts), replace=T) <br />
 results = RM2(muts, sites = ctcf_chr3_4, window_size = window_size, cofactor_column = "cofactor_col") <br />
-results
+
+#### Run downsampled RM2
+n_iterations = 10
+n_sites_sampled = 5000
+results = RM2_downsample(maf = muts, sites = ctcf_chr3_4, window_size = window_size, n_sites_sampled = n_sites_sampled, n_iterations = n_iterations)

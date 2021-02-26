@@ -4,7 +4,12 @@
 \alias{plot_mutations_in_flanked_sites}
 \title{Visualizes mutations in sites and flanks}
 \usage{
-plot_mutations_in_flanked_sites(dfr, window_size = 100, y_range = NULL)
+plot_mutations_in_flanked_sites(
+  dfr,
+  window_size = 100,
+  what_plot = "mut_freq",
+  y_range = NULL
+)
 }
 \arguments{
 \item{dfr}{Data frame of mutation counts at relative positions along stacked sites/flanks
@@ -15,6 +20,10 @@ plot_mutations_in_flanked_sites(dfr, window_size = 100, y_range = NULL)
 }}
 
 \item{window_size}{Integer indicating the half-width of sites and flanking regions (added to both sides of midpoint)}
+
+\item{what_plot}{Character (default "mut_freq") indicating y-axis variable}
+
+\item{y_range}{Numeric y-axis limits}
 }
 \value{
 ggplot object

@@ -4,14 +4,14 @@
 \alias{.merge_sites_and_muts}
 \title{Combines quadnucleotide counts and site information}
 \usage{
-.merge_sites_and_muts(gr_sites, gr_maf, trinuc_sites, is_site)
+.merge_sites_and_muts(gr_seq, gr_maf, trinuc, is_site)
 }
 \arguments{
-\item{gr_sites}{GenomicRanges object of site/flanks chromosomes and positions}
+\item{gr_seq}{GenomicRanges object of site/flanks chromosomes and positions}
 
 \item{gr_maf}{GenomicRanges object with mcols containing quadnucleotide context or indel}
 
-\item{trinuc_sites}{Data frame of counts for each trinucleotide counts extended to each quadnucleotide}
+\item{trinuc}{Data frame of counts for each trinucleotide counts extended to each quadnucleotide}
 
 \item{is_site}{Boolean indicating whether mutation is within site or flanking region}
 }
