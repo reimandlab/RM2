@@ -2,7 +2,7 @@
 % Please edit documentation in R/running_glm.R
 \name{RM2}
 \alias{RM2}
-\title{Regression models for local mutations: Evaluating differential mutation rates across classes of sites}
+\title{Regression models for localised mutations: Evaluating differential mutation rates across classes of sites}
 \usage{
 RM2(
   maf,
@@ -15,7 +15,7 @@ RM2(
 )
 }
 \arguments{
-\item{maf}{Data frame of mutations (prepared by get_mut_trinuc_strand) containiing the following information:
+\item{maf}{Data frame of mutations (prepared by get_mut_trinuc_strand) containing the following information:
 \describe{
 \item{chr}{autosomal chromosomes as chr1 to chr22 and sex chromosomes as chrX and chrY}
 \item{start}{the start position of the mutation in base 1 coordinates}
@@ -34,19 +34,19 @@ RM2(
 \item{end}{the end position of the mutation in base 0 coordinates}
 }}
 
-\item{cofactor_column}{Character corresponding to column of binary cofactors}
+\item{mut_class_columns}{Character corresponding to the column(s) of mutation classes for grouped analysis}
+
+\item{cofactor_column}{Character corresponding to the column of binary cofactors}
 
 \item{window_size}{Integer indicating the half-width of sites and flanking regions (added to left and right for full width). (default 100)}
 
 \item{n_min_mut}{Integer indicating the minimum number of mutations required to perform analysis (default 100)}
 
 \item{n_bin}{Integer indicating the number of megabase bins to use (default 10)}
-
-\item{mut_class_column}{Character corresponding to column of mutation classes for grouped analysis}
 }
 \value{
 Data frame containing the regression estimates and likelihood ratio test output with the following columns: mut_type,
-pp, this_coef, obs_mut, exp_mut, exp_mut_hi, exp_mut_lo, fc, n_sites_tested
+pp, this_coef, obs_mut, exp_mut, exp_mut_lo, exp_mut_hi, fc, n_sites_tested
 \describe{
 \item{mut_type}{A string identifying the mutation class}
 \item{pp}{The p-value from the likelihood ratio test}
@@ -62,5 +62,5 @@ pp, this_coef, obs_mut, exp_mut, exp_mut_hi, exp_mut_lo, fc, n_sites_tested
 }
 }
 \description{
-RM2() uses negative binomial regression to evaluate local mutation frequencies and processes between stacked sites of the same class to flanking control regions
+RM2() uses negative binomial regression to evaluate local mutational frequencies and processes between sites of the same class to flanking control regions
 }

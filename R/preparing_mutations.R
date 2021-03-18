@@ -1,4 +1,4 @@
-#' Derive quadnucleotide contexts, strandedness and single-base substitution
+#' Derive quadnucleotide contexts, strandedness and single-base substitutions
 #'
 #' get_mut_trinuc_strand() takes a data frame of mutations and determines the quadnucleotide context (trinucleotide context + alternate allele) and strand.
 #' @param maf Data frame of mutations with the following columns: chr, start, end, ref and alt
@@ -10,7 +10,17 @@
 #'     \item{alt}{the alternate allele as a string containing the bases A, T, C or G}
 #' }
 #'
-#' @return Dataframe containing quadnucleotide context (character), the strand, classified as w for Watson and c for Crick (character), and the single-base substitution (character)
+#' @return Data frame containing additional mutation context columns
+#' \describe{
+#'     \item{chr}{autosomal chromosomes as chr1 to chr22 and sex chromosomes as chrX and chrY}
+#'     \item{start}{the start position of the mutation in base 1 coordinates}
+#'     \item{end}{the end position of the mutation in base 1 coordinates}
+#'     \item{ref}{the reference allele as a string containing the bases A, T, C or G}
+#'     \item{alt}{the alternate allele as a string containing the bases A, T, C or G}
+#'     \item{mut_trinuc}{pyrimidine-centered quadnucleotide mutation context and indel}
+#'     \item{mut_strand}{the mutation strand classified as w for Watson and c for Crick}
+#'     \item{ref_alt}{pyrimidine single-base substitution}
+#' }
 #' @export
 get_mut_trinuc_strand = function(maf) {
   

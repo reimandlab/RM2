@@ -36,7 +36,9 @@ RM2_downsample(
 \item{end}{the end position of the mutation in base 0 coordinates}
 }}
 
-\item{cofactor_column}{Character corresponding to column of cofactors}
+\item{mut_class_columns}{Character corresponding to the column(s) of mutation classes for grouped analysis}
+
+\item{cofactor_column}{Character corresponding to the column of cofactors}
 
 \item{window_size}{Integer indicating the half-width of sites and flanking regions (added to left and right for full width) (default 100)}
 
@@ -47,12 +49,10 @@ RM2_downsample(
 \item{n_sites_sampled}{Integer indicating the number of sites to sample}
 
 \item{n_iterations}{Integer indicating how many times to repeat the sampling procedure (default 100)}
-
-\item{mut_class_column}{Character corresponding to column of mutation classes for grouped analysis}
 }
 \value{
 Data frame containing the regression estimates and likelihood ratio test output with the following columns: mut_type,
-pp, this_coef, obs_mut, exp_mut, exp_mut_hi, exp_mut_lo, fc, n_sites_tested
+pp, this_coef, obs_mut, exp_mut, exp_mut_lo, exp_mut_hi, fc, n_sites_tested
 \describe{
 \item{mut_type}{A string identifying the mutation class}
 \item{pp}{The p-value from the likelihood ratio test}

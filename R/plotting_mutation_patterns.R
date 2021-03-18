@@ -6,8 +6,13 @@
 #' @param window_size Integer indicating the half-width of sites and flanking regions (added to both sides of midpoint)
 #' @param n_patients Integer indicating number of patients
 #' 
-#' @return Data frame containing the relative position of each base (numeric), mut_count (numeric) of mutations, 
-#' mut_freq (numeric) calulated as mut_count / n_patients / total bp * 1e6, and site status (boolean)
+#' @return Data frame containing the frequency of mutations across site and flank positions
+#' \describe{
+#'     \item{dist}{the relative position of each base to nearest site midpoint}
+#'     \item{mut_count}{the number of overlapping mutations}
+#'     \item{is_site}{boolean indicating if the position is within the site}
+#'     \item{mut_freq}{frequency of mutations calculated as mut_count / n_patients / total bp * 1e6}
+#' }
 #' @export
 get_mutations_in_flanked_sites = function(mutations, this_sites, window_size, n_patients) {
   
@@ -59,18 +64,19 @@ get_mutations_in_flanked_sites = function(mutations, this_sites, window_size, n_
 
 
 
-#' Visualizes mutations in sites and flanks
+#' Visualize mutations in sites and flanks
 #'
 #' Barplot of mutations along relative positions to site midpoints
-#' @param dfr Data frame of mutation counts at relative positions along stacked sites/flanks
+#' @param dfr Data frame of mutation counts at relative positions along stacked sites/flanks (from get_mutations_in_flanked_sites)
 #'\describe{
 #'     \item{dist}{relative position of mutations}
-#'     \item{count}{number of mutations at relative position}
-#'     \item{is_site}{boolean indicator of whether relative position is within the site}
+#'     \item{mut_count}{number of mutations at relative position}
+#'     \item{is_site}{boolean indicating whether the relative position is within the site}
+#'     \item{mut_freq}{frequency of mutations, calculated as mut_count / n_patients / total bp * 1e6 by get_mutations_in_flanked_sites}
 #' }
 #' @param window_size Integer indicating the half-width of sites and flanking regions (added to both sides of midpoint)
-#' @param what_plot Character (default "mut_freq") indicating y-axis variable 
-#' @param y_range Numeric y-axis limits
+#' @param what_plot Character indicating y-axis variable (default "mut_freq")
+#' @param y_range Numeric y-axis limits (default NULL)
 #'
 #' @return ggplot object
 #' @export

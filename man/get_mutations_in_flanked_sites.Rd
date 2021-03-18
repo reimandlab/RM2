@@ -16,8 +16,13 @@ get_mutations_in_flanked_sites(mutations, this_sites, window_size, n_patients)
 \item{n_patients}{Integer indicating number of patients}
 }
 \value{
-Data frame containing the relative position of each base (numeric), mut_count (numeric) of mutations,
-mut_freq (numeric) calulated as mut_count / n_patients / total bp * 1e6, and site status (boolean)
+Data frame containing the frequency of mutations across site and flank positions
+\describe{
+\item{dist}{the relative position of each base to nearest site midpoint}
+\item{mut_count}{the number of overlapping mutations}
+\item{is_site}{boolean indicating if the position is within the site}
+\item{mut_freq}{frequency of mutations calculated as mut_count / n_patients / total bp * 1e6}
+}
 }
 \description{
 Prepares data frame of mutations at relative positions along flanks and sites
