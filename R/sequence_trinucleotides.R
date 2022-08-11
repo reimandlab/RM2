@@ -44,7 +44,7 @@
   # map A/G-centred trinucleotides to complementary strand	
   where_reverse = substr(tri_nucleotide, 2, 2) %in% c("A", "G")
   tri_nucleotide[where_reverse] = 
-    as.character(Biostrings::complement(Biostrings::DNAStringSet(tri_nucleotide[where_reverse])))
+    as.character(Biostrings::reverseComplement(Biostrings::DNAStringSet(tri_nucleotide[where_reverse])))
   
   # get trinuc mutation frequency, remove trinucs including N's 
   trinuc_dfr = data.frame(table(tri_nucleotide), stringsAsFactors = FALSE)

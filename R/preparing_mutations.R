@@ -42,12 +42,14 @@ get_mut_trinuc_strand = function(maf) {
   new_triples = triples
   new_alt = maf$alt
   
-  new_triples[which_to_complement] = as.character(Biostrings::complement(Biostrings::DNAStringSet(new_triples[which_to_complement])))
-  new_alt[which_to_complement] = as.character(Biostrings::complement(Biostrings::DNAStringSet(new_alt[which_to_complement])))
+  new_triples[which_to_complement] = 
+  		as.character(Biostrings::reverseComplement(Biostrings::DNAStringSet(new_triples[which_to_complement])))
+  new_alt[which_to_complement] = 
+  		as.character(Biostrings::reverseComplement(Biostrings::DNAStringSet(new_alt[which_to_complement])))
   
   mut_strand[which_to_complement] = "c"
   
-  mut_trinuc = paste0(new_triples,"_",new_alt)
+  mut_trinuc = paste0(new_triples,"_", new_alt)
   mut_trinuc[mut_class=="indel"] = "indel"
   
   ref_alt = paste0(gsub("^.(.).$", "\\1", new_triples), "_", new_alt)
