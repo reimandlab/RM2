@@ -5,8 +5,8 @@ As input, RM2 requires:
 1. Mutation file with optional annotation columns
 2. Set of genomic regions containing the chr, start and end position of the sites
 
-#### Preprint
-[Functional and genetic determinants of mutation rate variability in regulatory elements of cancer genomes](https://www.biorxiv.org/content/10.1101/2020.07.29.226373v2)
+#### Publication - Lee, Abd-Rabbo, Reimand. Genome Biol (2021)
+[Functional and genetic determinants of mutation rate variability in regulatory elements of cancer genomes](https://link.springer.com/article/10.1186/s13059-021-02318-x)
 
 ## Installation
 #### devtools
